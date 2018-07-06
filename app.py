@@ -1,7 +1,6 @@
 from flask import Flask, redirect, request, jsonify, abort
 from keras import models
 import numpy as np
-from PIL import Image
 import io
 
 from keras.applications.inception_v3 import InceptionV3
