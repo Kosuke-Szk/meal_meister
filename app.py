@@ -120,6 +120,7 @@ def model_predict(img_path, model):
         return preds
 
 def predict(img):
+    model = app.jinja_env.globals['model']
     img.save('./test.jpg')
     preds = model_predict('./test.jpg', model)
     pred_class = decode_predictions(preds, top=1)
@@ -127,15 +128,7 @@ def predict(img):
     print(result)
     return result
 
-global is_model_loaded
-is_model_loaded = False
-
-if is_model_loaded == False:
-    load_model()
-    is_model_loaded = True
-else:
-    pass
-
-# if __name__ == '__main__':
-    # load_model()
-    # app.run()
+@app.before_request
+def before_request():
+    print('TEST!!!!!!!!!!!!')
+    app.jinja_env.globals['model'] = load_model()
