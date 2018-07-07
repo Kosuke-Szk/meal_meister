@@ -2,6 +2,7 @@ from flask import Flask, redirect, request, jsonify, abort
 from keras import models
 import numpy as np
 import io
+from io import BytesIO
 
 from keras.applications.inception_v3 import InceptionV3
 from keras.preprocessing import image
@@ -17,11 +18,11 @@ from linebot.exceptions import (
     InvalidSignatureError
 )
 from linebot.models import (
-    MessageEvent, TextMessage, TextSendMessage,
+    MessageEvent, TextMessage, TextSendMessage, ImageMessage
 )
+from PIL import Image
 
 app = Flask(__name__)
-model = None
 
 # Set my LINE data
 channel_secret = os.environ['LINE_CHANNEL_SECRET']
@@ -60,18 +61,53 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    print('event!!!!!!:', event.reply_token)
+    text = event.message.text
+
+    messages = [
+        TextSendMessage(text=text),
+        TextSendMessage(text='画像を送ってみてね'),
+    ]
+
+    reply_message(event, messages)
+
+@handler.add(MessageEvent, message=ImageMessage)
+def handle_image(event):
+    message_id = event.message.id
+    message_content = line_bot_api.get_message_content(message_id)
+
+    image = BytesIO(message_content.content)
+    image = Image.open(image)
+    result = predict(image)
+
+    try:
+        messages = [
+            TextSendMessage(text='画像が送信されました！'),
+            TextSendMessage(text=result)
+        ]
+        reply_message(event, messages)
+    except Exception as e:
+        print("error:", e)
+        reply_message(event, TextSendMessage(text='エラーが発生しました'))
+
+def reply_message(event, messages):
     line_bot_api.reply_message(
         event.reply_token,
-        TextSendMessage(text=event.message.text))
+        messages=messages,
+    )
 
 def load_model():
     global model
     global graph
-    model = models.load_model('inception_v3.h5')
-    graph = tf.get_default_graph()
-    model.summary()
-    print('Loaded the model')
+    print('Load model')
+    if 'model' in globals() and 'graph' in globals():
+        pass
+    else:
+        print('New model')
+        model = models.load_model('inception_v3.h5')
+        model.summary()
+        graph = tf.get_default_graph()
+        print('Loaded the model')
+    return model
 
 def model_predict(img_path, model):
     with graph.as_default():
@@ -83,24 +119,21 @@ def model_predict(img_path, model):
         preds = model.predict(x)
         return preds
 
-@app.route('/predict', methods=['POST'])
-def predict():
-    if request.files and 'picfile' in request.files:
-        img = request.files['picfile']
-        img.save('./test.jpg')
-        preds = model_predict('./test.jpg', model)
-        pred_class = decode_predictions(preds, top=1)
-        result = str(pred_class[0][0][1])
-        print(result)
-        return result
-    return None
+# @app.route('/predict', methods=['POST'])
+def predict(img):
+    # if request.files and 'picfile' in request.files:
+    # img = request.files['picfile']
+    img.save('./test.jpg')
+    preds = model_predict('./test.jpg', model)
+    pred_class = decode_predictions(preds, top=1)
+    result = str(pred_class[0][0][1])
+    print(result)
+    return result
+    # return None
 
-# @app.route('/currentimage', methods=['GET'])
-# def current_image():
-#     fileob = open('test.jpg', 'rb')
-#     data = fileob.read()
-#     return data
-
-if __name__ == '__main__':
+# if __name__ == '__main__':
     # load_model()
-    app.run()
+    # app.run()
+
+if __name__ == 'app':
+    load_model()
