@@ -119,21 +119,23 @@ def model_predict(img_path, model):
         preds = model.predict(x)
         return preds
 
-# @app.route('/predict', methods=['POST'])
 def predict(img):
-    # if request.files and 'picfile' in request.files:
-    # img = request.files['picfile']
     img.save('./test.jpg')
     preds = model_predict('./test.jpg', model)
     pred_class = decode_predictions(preds, top=1)
     result = str(pred_class[0][0][1])
     print(result)
     return result
-    # return None
+
+global is_model_loaded
+is_model_loaded = False
+
+if is_model_loaded == False:
+    load_model()
+    is_model_loaded = True
+else:
+    pass
 
 # if __name__ == '__main__':
     # load_model()
     # app.run()
-
-if __name__ == 'app':
-    load_model()
