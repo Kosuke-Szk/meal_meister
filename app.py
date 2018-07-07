@@ -96,21 +96,17 @@ def reply_message(event, messages):
     )
 
 def load_model():
-    global model
-    global graph
-    print('Load model')
-    if 'model' in globals() and 'graph' in globals():
-        pass
-    else:
+    try:
+        model = app.jinja_env.globals['model']
+        graph = app.jinja_env.globals['graph']
+    except:
         print('New model')
-        model = models.load_model('inception_v3.h5')
-        model.summary()
-        graph = tf.get_default_graph()
+        app.jinja_env.globals['model'] = models.load_model('inception_v3.h5')
+        app.jinja_env.globals['graph'] = tf.get_default_graph()
         print('Loaded the model')
-    return model
 
 def model_predict(img_path, model):
-    with graph.as_default():
+    with app.jinja_env.globals['graph'].as_default():
         img = image.load_img(img_path, target_size=(224,224))
         # Preprocessing the image
         x = image.img_to_array(img)
@@ -130,5 +126,5 @@ def predict(img):
 
 @app.before_request
 def before_request():
-    print('TEST!!!!!!!!!!!!')
-    app.jinja_env.globals['model'] = load_model()
+    load_model()
+
