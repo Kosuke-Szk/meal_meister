@@ -9,7 +9,6 @@ from io import BytesIO
 
 from rq import Queue
 from worker import conn
-from bottle import route, run
 
 from keras.applications.inception_v3 import InceptionV3
 from keras.preprocessing import image
