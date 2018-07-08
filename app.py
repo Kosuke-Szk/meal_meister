@@ -7,6 +7,10 @@ import japanese_conv
 import io
 from io import BytesIO
 
+from rq import Queue
+from worker import conn
+from bottle import route, run
+
 from keras.applications.inception_v3 import InceptionV3
 from keras.preprocessing import image
 from keras.applications.inception_v3 import preprocess_input, decode_predictions
@@ -24,6 +28,8 @@ from linebot.models import (
     MessageEvent, TextMessage, TextSendMessage, ImageMessage
 )
 from PIL import Image
+
+q = Queue(connection=conn)
 
 app = Flask(__name__)
 
@@ -149,5 +155,5 @@ def predict(img):
 
 @app.before_request
 def before_request():
-    load_model()
+    q.enqueue(load_model())
 
