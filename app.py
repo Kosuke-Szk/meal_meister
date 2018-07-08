@@ -152,7 +152,7 @@ def predict(img):
     recipe_list = recipe.search_by_material(result_list)
     return recipe_list, result
 
-@app.before_request
-def before_request():
-    q.enqueue(load_model())
+# @app.before_request
+# def before_request():
+q.enqueue(load_model())
 
