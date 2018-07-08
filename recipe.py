@@ -27,7 +27,7 @@ def get_recipes_all():
   # return result
 
 def save_recipes(data):
-  es = Elasticsearch()
+  es = Elasticsearch([os.environ.get('SEARCHBOX_URL')] or ['http://localhost:9200'])
   actions = []
   pp = pprint.PrettyPrinter(indent=2)
   for datapoint in data:
@@ -43,7 +43,7 @@ def save_recipes(data):
 def search_by_material(material_list):
   for material in material_list:
     print('食材は{}です。'.format(material))
-    es = Elasticsearch()
+    es = Elasticsearch([os.environ.get('SEARCHBOX_URL')] or ['http://localhost:9200'])
     res = es.search(index='cook',body={ "query": { "bool": { "must": [ { "match_phrase": { "recipeMaterial": material } } ] } } })
     if res['hits']['total'] == 0:
       continue
