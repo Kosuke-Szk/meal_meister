@@ -28,8 +28,6 @@ from linebot.models import (
 )
 from PIL import Image
 
-q = Queue(connection=conn)
-
 app = Flask(__name__)
 
 # Set my LINE data
@@ -154,5 +152,6 @@ def predict(img):
 
 # @app.before_request
 # def before_request():
+q = Queue(connection=conn)
 q.enqueue(load_model())
 
