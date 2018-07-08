@@ -1,6 +1,9 @@
 from flask import Flask, redirect, request, jsonify, abort
 from keras import models
 import numpy as np
+import translate
+import recipe
+import japanese_conv
 import io
 from io import BytesIO
 
@@ -42,6 +45,10 @@ handler = WebhookHandler(channel_secret)
 def hello_world():
     return "hello world!"
 
+@app.route("/get_recipes_Cfd454aD")
+def get_recipes_all():
+    recipe.get_recipes_all()
+
 @app.route("/callback", methods=['POST'])
 def callback():
     # get X-Line-Signature header value
@@ -77,17 +84,31 @@ def handle_image(event):
 
     image = BytesIO(message_content.content)
     image = Image.open(image)
-    result = predict(image)
-
-    try:
-        messages = [
-            TextSendMessage(text='画像が送信されました！'),
-            TextSendMessage(text=result)
-        ]
-        reply_message(event, messages)
-    except Exception as e:
-        print("error:", e)
-        reply_message(event, TextSendMessage(text='エラーが発生しました'))
+    recipe_list, object_name = predict(image)
+    if recipe_list:
+        print(recipe_list)
+        for recipe in recipe_list:
+            try:
+                messages = [
+                    TextMessage(text='{}が見えるな〜'.format(object_name)),
+                    TextSendMessage(text=str(recipe['_source']['recipeTitle'])),
+                    TextSendMessage(text=str(recipe['_source']['recipeUrl']))
+                ]
+                reply_message(event, messages)
+            except Exception as e:
+                print("error:", e)
+                reply_message(event, TextSendMessage(text='エラーが発生しました'))
+    else:
+        print("No recipe hit")
+        try:
+            messages = [
+                TextMessage(text='{}が見えるな〜'.format(object_name)),
+                TextSendMessage(text="レシピはないみたい・・・")
+            ]
+            reply_message(event, messages)
+        except Exception as e:
+            print("error:", e)
+            reply_message(event, TextSendMessage(text='エラーが発生しました'))
 
 def reply_message(event, messages):
     line_bot_api.reply_message(
@@ -121,8 +142,10 @@ def predict(img):
     preds = model_predict('./test.jpg', model)
     pred_class = decode_predictions(preds, top=1)
     result = str(pred_class[0][0][1])
-    print(result)
-    return result
+    result = str(translate.get_translated_text(result))
+    result_list = [japanese_conv.kata_to_hira(result), japanese_conv.hira_to_kata(result)]
+    recipe_list = recipe.search_by_material(result_list)
+    return recipe_list, result
 
 @app.before_request
 def before_request():
