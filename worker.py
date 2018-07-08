@@ -8,7 +8,6 @@ redis_url = os.getenv('REDISTOGO_URL', 'redis://localhost:6379')
 
 conn = redis.from_url(redis_url)
 
-if __name__ == '__app__':
-  with Connection(conn):
+with Connection(conn):
     worker = Worker(map(Queue, listen))
     worker.work()
