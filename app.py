@@ -29,6 +29,7 @@ from linebot.models import (
 from PIL import Image
 
 app = Flask(__name__)
+q = Queue(connection=conn)
 
 # Set my LINE data
 channel_secret = os.environ['LINE_CHANNEL_SECRET']
@@ -46,6 +47,7 @@ handler = WebhookHandler(channel_secret)
 
 @app.route("/")
 def hello_world():
+    q.enqueue(load_model())
     return "hello world!"
 
 @app.route("/get_recipes_Cfd454aD")
@@ -152,6 +154,4 @@ def predict(img):
 
 # @app.before_request
 # def before_request():
-q = Queue(connection=conn)
-q.enqueue(load_model())
 
