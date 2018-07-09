@@ -28,11 +28,6 @@ from linebot.models import (
 )
 from PIL import Image
 
-global model
-global graph
-model = None
-graph = None
-
 app = Flask(__name__)
 q = Queue(connection=conn)
 
@@ -52,6 +47,10 @@ handler = WebhookHandler(channel_secret)
 
 @app.route("/")
 def hello_world():
+    global model
+    global graph
+    model = None
+    graph = None
     q.enqueue(load_model)
     return "hello world!"
 
