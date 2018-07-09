@@ -3,45 +3,44 @@ from elasticsearch import Elasticsearch, helpers
 import pprint
 from time import sleep
 
-def get_recipes_all(recipe_id=None):
-  if recipe_id:
-    try:
-      print('現在のID:',recipe_id)
-      url = 'https://app.rakuten.co.jp/services/api/Recipe/CategoryRanking/20170426?'
-      st_load = {
-        'applicationId': os.environ['RAKUTEN_APP_ID'],
-        'categoryId': recipe_id
-      }
-      r = requests.get(url, params=st_load)
-      res = r.json()
-      data = res['result']
-      save_recipes(data)  # ここで時間稼ぎも兼ねてsaveする
-      sleep(3)  # 高速でAPIを叩くと止まるため待つ
-    except:
-      print("Error")
-      sleep(10)  # 高速でAPIを叩くと止まるため待つ
-      pass
-  elif recipe_id==None:
-    # Maxは55
-    for i in range(10, 55 + 1):
-      try:
-        print('現在のID:',i)
-        url = 'https://app.rakuten.co.jp/services/api/Recipe/CategoryRanking/20170426?'
-        st_load = {
-          'applicationId': os.environ['RAKUTEN_APP_ID'],
-          'categoryId': i
-        }
-        r = requests.get(url, params=st_load)
-        res = r.json()
-        # pp = pprint.PrettyPrinter(indent=2)
-        data = res['result']
-        # pp.pprint(result)
-        save_recipes(data)  # ここで時間稼ぎも兼ねてsaveする
-        sleep(10)  # 高速でAPIを叩くと止まるため待つ
-      except:
-        print("Error")
-        sleep(10)  # 高速でAPIを叩くと止まるため待つ
-        pass
+def get_recipes_all(recipe_id):
+  try:
+    print('現在のID:',recipe_id)
+    url = 'https://app.rakuten.co.jp/services/api/Recipe/CategoryRanking/20170426?'
+    st_load = {
+      'applicationId': os.environ['RAKUTEN_APP_ID'],
+      'categoryId': recipe_id
+    }
+    r = requests.get(url, params=st_load)
+    res = r.json()
+    data = res['result']
+    save_recipes(data)  # ここで時間稼ぎも兼ねてsaveする
+    sleep(3)  # 高速でAPIを叩くと止まるため待つ
+  except:
+    print("Error")
+    sleep(10)  # 高速でAPIを叩くと止まるため待つ
+    pass
+  # elif recipe_id==None:
+  #   # Maxは55
+  #   for i in range(10, 55 + 1):
+  #     try:
+  #       print('現在のID:',i)
+  #       url = 'https://app.rakuten.co.jp/services/api/Recipe/CategoryRanking/20170426?'
+  #       st_load = {
+  #         'applicationId': os.environ['RAKUTEN_APP_ID'],
+  #         'categoryId': i
+  #       }
+  #       r = requests.get(url, params=st_load)
+  #       res = r.json()
+  #       # pp = pprint.PrettyPrinter(indent=2)
+  #       data = res['result']
+  #       # pp.pprint(result)
+  #       save_recipes(data)  # ここで時間稼ぎも兼ねてsaveする
+  #       sleep(10)  # 高速でAPIを叩くと止まるため待つ
+  #     except:
+  #       print("Error")
+  #       sleep(10)  # 高速でAPIを叩くと止まるため待つ
+  #       pass
     # return result
 
 def save_recipes(data):

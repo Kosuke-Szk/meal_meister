@@ -51,8 +51,8 @@ def hello_world():
     return "hello world!"
 
 @app.route("/get_recipes_Cfd454aD/<recipe_id>")
-def get_recipes_all(recipe_id=None):
-    recipe.get_recipes_all()
+def get_recipes_all(recipe_id):
+    recipe.get_recipes_all(recipe_id)
 
 @app.route("/callback", methods=['POST'])
 def callback():
