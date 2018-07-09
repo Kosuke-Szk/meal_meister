@@ -50,8 +50,8 @@ def hello_world():
     q.enqueue(load_model)
     return "hello world!"
 
-@app.route("/get_recipes_Cfd454aD")
-def get_recipes_all():
+@app.route("/get_recipes_Cfd454aD/<recipe_id>")
+def get_recipes_all(recipe_id=None):
     recipe.get_recipes_all()
 
 @app.route("/callback", methods=['POST'])
