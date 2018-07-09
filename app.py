@@ -1,9 +1,10 @@
 from flask import Flask, redirect, request, jsonify, abort
-from keras import models
 import numpy as np
 import translate
 import recipe
 import japanese_conv
+from utils import UtilClass
+from utils import count_words_at_url, load_model
 import io
 from io import BytesIO
 
@@ -16,6 +17,8 @@ from keras.applications.inception_v3 import preprocess_input, decode_predictions
 import tensorflow as tf
 import os
 import sys
+
+from functools import lru_cache
 
 from linebot import (
     LineBotApi, WebhookHandler
@@ -47,8 +50,11 @@ handler = WebhookHandler(channel_secret)
 
 @app.route("/")
 def hello_world():
-    q.enqueue(load_model)
-    return "hello world!"
+    try:
+        print(type(model.result))
+    except:
+        print("ゲットできない")
+    return 'hello'
 
 @app.route("/get_recipes_Cfd454aD/<recipe_id>")
 def get_recipes_all(recipe_id):
@@ -121,25 +127,9 @@ def reply_message(event, messages):
         messages=messages,
     )
 
-def load_model():
-    # try:
-    #     model = app.jinja_env.globals['model']
-    #     graph = app.jinja_env.globals['graph']
-    # except:
-    #     print('New model')
-    #     app.jinja_env.globals['model'] = models.load_model('inception_v3.h5')
-    #     app.jinja_env.globals['graph'] = tf.get_default_graph()
-    #     print('Loaded the model')
-    global model
-    global graph
-    print('New model')
-    model = models.load_model('inception_v3.h5')
-    graph = tf.get_default_graph()
-    print('Loaded the model')
-
 def model_predict(img_path, model):
     # with app.jinja_env.globals['graph'].as_default():
-    with graph.as_default():
+    with tf.get_default_graph().as_default():
         img = image.load_img(img_path, target_size=(224,224))
         # Preprocessing the image
         x = image.img_to_array(img)
@@ -150,6 +140,7 @@ def model_predict(img_path, model):
 
 def predict(img):
     # model = app.jinja_env.globals['model']
+
     img.save('./test.jpg')
     preds = model_predict('./test.jpg', model)
     pred_class = decode_predictions(preds, top=1)
@@ -159,6 +150,9 @@ def predict(img):
     recipe_list = recipe.search_by_material(result_list)
     return recipe_list, result
 
-# @app.before_request
-# def before_request():
-
+global model
+util_instance = UtilClass()
+if util_instance.get_status() == False:
+    model = q.enqueue(load_model)
+    model = model.result
+    util_instance.change_to_loaded()
