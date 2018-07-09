@@ -47,7 +47,8 @@ handler = WebhookHandler(channel_secret)
 
 @app.route("/")
 def hello_world():
-    q.enqueue(load_model)
+    global model
+    model = q.enqueue(load_model)
     return "hello world!"
 
 @app.route("/get_recipes_Cfd454aD/<recipe_id>")
