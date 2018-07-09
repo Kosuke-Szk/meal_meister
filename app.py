@@ -28,6 +28,9 @@ from linebot.models import (
 )
 from PIL import Image
 
+global model
+global graph
+
 app = Flask(__name__)
 q = Queue(connection=conn)
 
@@ -47,8 +50,7 @@ handler = WebhookHandler(channel_secret)
 
 @app.route("/")
 def hello_world():
-    global model
-    model = q.enqueue(load_model)
+    q.enqueue(load_model)
     return "hello world!"
 
 @app.route("/get_recipes_Cfd454aD/<recipe_id>")
@@ -123,17 +125,25 @@ def reply_message(event, messages):
     )
 
 def load_model():
-    try:
-        model = app.jinja_env.globals['model']
-        graph = app.jinja_env.globals['graph']
-    except:
+    # try:
+    #     model = app.jinja_env.globals['model']
+    #     graph = app.jinja_env.globals['graph']
+    # except:
+    #     print('New model')
+    #     app.jinja_env.globals['model'] = models.load_model('inception_v3.h5')
+    #     app.jinja_env.globals['graph'] = tf.get_default_graph()
+    #     print('Loaded the model')
+    if model == None:
         print('New model')
-        app.jinja_env.globals['model'] = models.load_model('inception_v3.h5')
-        app.jinja_env.globals['graph'] = tf.get_default_graph()
+        model = models.load_model('inception_v3.h5')
+        graph = tf.get_default_graph()
         print('Loaded the model')
+    else:
+        pass
 
 def model_predict(img_path, model):
-    with app.jinja_env.globals['graph'].as_default():
+    # with app.jinja_env.globals['graph'].as_default():
+    with graph.as_default():
         img = image.load_img(img_path, target_size=(224,224))
         # Preprocessing the image
         x = image.img_to_array(img)
@@ -143,7 +153,7 @@ def model_predict(img_path, model):
         return preds
 
 def predict(img):
-    model = app.jinja_env.globals['model']
+    # model = app.jinja_env.globals['model']
     img.save('./test.jpg')
     preds = model_predict('./test.jpg', model)
     pred_class = decode_predictions(preds, top=1)
