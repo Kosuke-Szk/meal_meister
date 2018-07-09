@@ -30,6 +30,8 @@ from PIL import Image
 
 global model
 global graph
+model = None
+graph = None
 
 app = Flask(__name__)
 q = Queue(connection=conn)
