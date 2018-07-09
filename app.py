@@ -47,10 +47,6 @@ handler = WebhookHandler(channel_secret)
 
 @app.route("/")
 def hello_world():
-    global model
-    global graph
-    model = None
-    graph = None
     q.enqueue(load_model)
     return "hello world!"
 
@@ -134,13 +130,12 @@ def load_model():
     #     app.jinja_env.globals['model'] = models.load_model('inception_v3.h5')
     #     app.jinja_env.globals['graph'] = tf.get_default_graph()
     #     print('Loaded the model')
-    if model == None:
-        print('New model')
-        model = models.load_model('inception_v3.h5')
-        graph = tf.get_default_graph()
-        print('Loaded the model')
-    else:
-        pass
+    global model
+    global graph
+    print('New model')
+    model = models.load_model('inception_v3.h5')
+    graph = tf.get_default_graph()
+    print('Loaded the model')
 
 def model_predict(img_path, model):
     # with app.jinja_env.globals['graph'].as_default():
